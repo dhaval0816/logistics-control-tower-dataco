@@ -1,0 +1,131 @@
+-- All measures from the _Measures table in Logistics_Control_Tower.pbip
+-- Exported from the TMDL file so they are easy to read on GitHub
+
+
+-- ===== Delivery =====
+
+Orders =
+DISTINCTCOUNT ( Fact_OrderLines[Order Id] )
+
+'Late Orders' =
+-- Orders flagged late. Cancelled orders are excluded by the Is Cancelled = 0 page filter, not here
+CALCULATE ( [Orders], Fact_OrderLines[Late_delivery_risk] = 1 )
+
+'On-Time Delivery %' =
+-- Counted at order level, not line level. Blank when there are no orders, so empty months don't show 100%
+IF ( ISBLANK ( [Orders] ), BLANK (), 1 - DIVIDE ( [Late Orders], [Orders] ) )
+
+'Avg Delay Days' =
+-- Real minus scheduled days per order line. Negative means early
+AVERAGE ( Fact_OrderLines[Delay Days] )
+
+'Avg Scheduled Days' =
+AVERAGE ( Fact_OrderLines[Days for shipment (scheduled)] )
+
+'Avg Actual Days' =
+AVERAGE ( Fact_OrderLines[Days for shipping (real)] )
+
+'Cancelled Orders' =
+-- REMOVEFILTERS lets this still show on pages filtered to Is Cancelled = 0
+CALCULATE ( [Orders], Fact_OrderLines[Is Cancelled] = 1, REMOVEFILTERS ( Fact_OrderLines[Is Cancelled] ) )
+
+
+-- ===== Finance =====
+
+Revenue =
+-- Order Item Total, which is after discount
+SUM ( Fact_OrderLines[Order Item Total] )
+
+'Gross Sales' =
+-- Sales column, which is before discount
+SUM ( Fact_OrderLines[Sales] )
+
+Profit =
+SUM ( Fact_OrderLines[Order Profit Per Order] )
+
+'Profit Margin %' =
+DIVIDE ( [Profit], [Revenue] )
+
+'Revenue at Risk (Late)' =
+-- Revenue on order lines that were delivered late
+CALCULATE ( [Revenue], Fact_OrderLines[Late_delivery_risk] = 1 )
+
+'Loss Order %' =
+-- Sum profit per order first, then count orders below zero (order level, not line level)
+VAR OrderProfit =
+    ADDCOLUMNS ( SUMMARIZE ( Fact_OrderLines, Fact_OrderLines[Order Id] ), "@Profit", [Profit] )
+VAR LossOrders = COUNTROWS ( FILTER ( OrderProfit, [@Profit] < 0 ) )
+RETURN
+    DIVIDE ( LossOrders, COUNTROWS ( OrderProfit ) )
+
+'Revenue by Ship Date' =
+-- Uses the inactive Ship Date relationship instead of Order Date
+CALCULATE ( [Revenue], USERELATIONSHIP ( Fact_OrderLines[Ship Date], Dim_Date[Date] ) )
+
+
+-- ===== Targets =====
+
+'OTD Target' =
+0.90
+
+'OTD Variance' =
+-- Percentage points above (+) or below (-) the target
+[On-Time Delivery %] - [OTD Target]
+
+'OTD Arrow' =
+-- Blank when there are no orders, so empty rows stay empty
+IF ( ISBLANK ( [Orders] ), BLANK (), IF ( [OTD Variance] >= 0, "▲", "▼" ) )
+
+'OTD Color' =
+-- Hex colour for conditional formatting (Format > Field value)
+IF ( ISBLANK ( [Orders] ), BLANK (), IF ( [OTD Variance] >= 0, "#00B074", "#F0643C" ) )
+
+'Margin Target' =
+0.12
+
+'Margin Variance' =
+-- Percentage points above (+) or below (-) the target
+[Profit Margin %] - [Margin Target]
+
+'Margin Arrow' =
+IF ( ISBLANK ( [Revenue] ), BLANK (), IF ( [Margin Variance] >= 0, "▲", "▼" ) )
+
+'Margin Color' =
+-- Hex colour for conditional formatting (Format > Field value)
+IF ( ISBLANK ( [Revenue] ), BLANK (), IF ( [Margin Variance] >= 0, "#00B074", "#F0643C" ) )
+
+
+-- ===== Delivery =====
+
+'Late Order %' =
+-- Share of orders flagged late (the opposite of On-Time Delivery %)
+DIVIDE ( [Late Orders], [Orders] )
+
+
+-- ===== Targets =====
+
+'OTD Bar Color' =
+-- Colour rule for bars: below 50% coral, 50 to 80% yellow, above 80% green
+SWITCH ( TRUE (), ISBLANK ( [On-Time Delivery %] ), BLANK (), [On-Time Delivery %] < 0.5, "#F0643C", [On-Time Delivery %] <= 0.8, "#EBCB75", "#00B074" )
+
+'OTD vs Target Label' =
+-- Arrow plus the gap to target in percentage points, used as the KPI card reference label
+IF ( ISBLANK ( [Orders] ), BLANK (), [OTD Arrow] & " " & FORMAT ( [OTD Variance] * 100, "+0.0;-0.0;0.0" ) & " pts vs " & FORMAT ( [OTD Target], "0%" ) & " target" )
+
+'Margin vs Target Label' =
+-- Arrow plus the gap to target in percentage points, used as the KPI card reference label
+IF ( ISBLANK ( [Revenue] ), BLANK (), [Margin Arrow] & " " & FORMAT ( [Margin Variance] * 100, "+0.0;-0.0;0.0" ) & " pts vs " & FORMAT ( [Margin Target], "0%" ) & " target" )
+
+
+-- ===== Delivery =====
+
+'On-Time % All Markets' =
+-- On-time % with the market, region and country filters removed. Used as the line on the market chart
+CALCULATE ( [On-Time Delivery %], REMOVEFILTERS ( Dim_Geography ) )
+
+
+-- ===== Targets =====
+
+'Profit Point Color' =
+-- Coral for anything that lost money, blue-grey otherwise. Used on the product scatter
+IF ( ISBLANK ( [Revenue] ), BLANK (), IF ( [Profit] < 0, "#F0643C", "#7F9FCE" ) )

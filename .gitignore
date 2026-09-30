@@ -1,0 +1,10 @@
+# Power BI local files
+**/.pbi/localSettings.json
+
+# Raw data (download it from Kaggle, see README)
+DataCoSupplyChainDataset.csv
+DescriptionDataCoSupplyChain.csv
+tokenized_access_logs.csv
+
+# Excel and Office temp files
+~$*
