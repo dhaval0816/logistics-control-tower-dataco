@@ -4,6 +4,8 @@ A Power BI and Excel project I built on the DataCo Smart Supply Chain dataset fr
 
 The question I started with: customers complain about late deliveries, and the COO thinks premium shipping isn't giving customers what they pay for. Where do the delays come from, and what do they cost?
 
+![Control Tower Overview](images/1_overview.png)
+
 ## What I found
 
 All numbers below leave out cancelled orders (see "Decisions I made").
@@ -22,21 +24,32 @@ My recommendation is to reset the promised days for First and Second Class to wh
 | `DAX_measures.dax` | Every measure in the model, so you can read them without opening Power BI |
 | `logistics_theme.json` | My Power BI theme |
 | `country_names_en.csv` | Small lookup I made to translate the Spanish country names |
-| Excel workbook | In the Releases section (the file is too big for the main page) |
+| `images/` | Screenshots of each report page |
+| Excel workbook | In [Releases](../../releases) (the file is too big for the main page). It has the data dictionary, 24 quality checks, pivots, the cost of delay model and my findings |
 
 ## The dashboard
 
-Five pages:
+Five pages. Every page title states the finding, and every page has the same shipping mode tiles, market filter and reset button.
 
-1. Control Tower Overview: KPI cards, monthly trend against a 90% target, on-time % by shipping mode
-2. Delivery by Shipping Mode: promised vs actual days, delay mix, mode by market matrix
-3. Geographic Performance: map by country, market comparison
-4. Profitability and Loss Orders: margin by category, loss orders, revenue at risk
-5. Root-Cause Explorer: decomposition tree and key influencers
+**1. Control Tower Overview.** KPI cards against targets, the monthly trend against a 90% target, and on-time % by shipping mode. The buttons on top are bookmarks: premium modes only, late orders only, last 12 months and reset.
 
-There are also bookmarks (premium modes only, late orders only, last 12 months, reset), a drill-through page for order detail and a tooltip page.
+**2. Delivery by Shipping Mode.** Promised days next to actual days. This is the page that shows the problem most clearly.
 
-Screenshots coming soon.
+![Delivery by Shipping Mode](images/2_shipping_mode.png)
+
+**3. Geographic Performance.** Map by country, markets against the all-markets line, and a region table. Every market lands in the same place.
+
+![Geographic Performance](images/3_geography.png)
+
+**4. Profitability and Loss Orders.** Margin by category against the 12% target, revenue vs profit by product, and loss orders and revenue at risk by mode. Cancelled orders get their own card.
+
+![Profitability and Loss Orders](images/4_profitability.png)
+
+**5. Root-Cause Explorer.** A decomposition tree to split late orders any way you want, and key influencers. First Class makes an order about 2x more likely to be late.
+
+![Root-Cause Explorer](images/5_root_cause.png)
+
+There are also two hidden pages: an order detail drill-through and a tooltip page that shows up when you hover over a mode or market.
 
 ## The data model
 
