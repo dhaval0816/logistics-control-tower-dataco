@@ -85,3 +85,9 @@ I did all the cleaning in Power Query by clicking through the UI, not by writing
 ## Tools
 
 Excel (Microsoft 365), Power BI Desktop, Power Query, DAX.
+
+## About me
+
+I'm Dhavalkumar Pandav, a supply chain and logistics student in Ottawa with warehouse experience, working toward a data analyst role. I built this project using what I learned in the Microsoft Power BI Data Analyst Professional Certificate (Microsoft, through Coursera, 2026).
+
+LinkedIn: [linkedin.com/in/dhaval0816](https://www.linkedin.com/in/dhaval0816)
